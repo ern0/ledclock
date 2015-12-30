@@ -183,13 +183,6 @@ void setupEmu();
 			if (pos2 == n) strip.setPixelColor(small[n],0,lit2 / 2,lit2);
 		}
 
-		calc(24,60,360000,6000);
-
-		for (int n = 0; n < 24; n++) {
-			if (pos1 == n) strip.setPixelColor(large[n],lit1,lit1,0);
-			if (pos2 == n) strip.setPixelColor(large[n],lit2,lit2,0);
-		}
-		
 		calc(24,60,6000,100);
 
 		for (int n = 0; n < 24; n++) {
@@ -197,6 +190,13 @@ void setupEmu();
 			if (pos2 == n) strip.setPixelColor(large[n],lit2,0,0);
 		}
 
+		calc(24,60,360000,6000);
+
+		for (int n = 0; n < 24; n++) {
+			if (pos1 == n) strip.setPixelColor(large[n],lit1,lit1,0);
+			if (pos2 == n) strip.setPixelColor(large[n],lit2,lit2,0);
+		}
+		
 		strip.show();
 		
 	} // redrawClock() 

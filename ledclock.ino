@@ -15,14 +15,29 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(24 + 12,PIN,NEO_GRB + NEO_KHZ800);
 static char large[24] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 };
 static char small[12] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 
-static char clockHour = HOUR;
-static char clockMin = MIN;
-static char clockSec = SEC;
-static char clockCenti = 0;
+# ifdef SDL_DISPLAY
+static unsigned char clockHour = HOUR;
+static unsigned char clockMin = MIN;
+static unsigned char clockSec = SEC;
+# else
+static unsigned char clockHour = 19;
+static unsigned char clockMin = 28;
+static unsigned char clockSec = 20;
+# endif
+
+static unsigned long int stamp = 0;
+
+static unsigned long int pos1 = 0;
+static unsigned long int lit1 = 0;
+static unsigned long int pos2 = 0;
+static unsigned long int lit2 = 0;
 
 void tick();
 void setupTimerInterrupt();
+void setStamp();
 void redrawClock();
+void calc(unsigned long int unitSlot,unsigned long int scaleSlot,unsigned long int mod,unsigned long int div);
+
 # ifdef SDL_DISPLAY
 void setupEmu();
 # endif
@@ -37,10 +52,10 @@ void setupEmu();
 		strip.begin();
 		strip.setBrightness(40);
 		strip.show(); // Initialize all pixels to 'off'
-
-    for (int n = 0; n < 36; n++) strip.setPixelColor(n,0,0,0);
+    for (int n = 0; n < 36; n++) strip.setPixelColor(n,255,0,255);
     strip.show();
 
+		setStamp();
 		setupTimerInterrupt();
 		
 	} // setup()
@@ -49,8 +64,8 @@ void setupEmu();
 	# ifdef SDL_DISPLAY
 	void setupEmu() {
 
-		strip.emuSetGridScreenAnchor("se");
-		strip.emuSetGridScreenPercent(40);
+		strip.emuSetGridScreenAnchor("ne");
+		strip.emuSetGridScreenPercent(20);
 		strip.emuSetGridCells(36,36);
 		
 		int n = 0;
@@ -135,90 +150,74 @@ void setupEmu();
 
 	void tick() { // 100 Hz
 	
-		clockCenti++;
-		if (clockCenti > 99) {
-			clockCenti -= 100;
-			clockSec++;
-			if (clockSec > 59) {
-				clockSec = 0;
-				clockMin++;
-				if (clockMin > 59) {
-					clockMin = 0;
-					clockHour++;
-					if (clockHour > 23) {
-						clockHour = 0;
-					} // if hour
-				} // if min
-			} // if sec
-			
-			redrawClock();
-			
-		} // if centi
+		stamp++;
+		if (stamp > (60*60*12-1)) stamp = 0; 
+
+		if (stamp % 5 == 0) redrawClock();
 	
 	} // tick()
-
-
-	void redrawClock() {
-	
-		int pos1;
-		int lit1;
-		int pos2;
-		int lit2;
-
-		printf("%02d:%02d:%02d \n",(int)clockHour,(int)clockMin,(int)clockSec);
-	
-		char hour12 = ( clockHour < 12 ? clockHour : clockHour - 12 );
-		calc(12,hour12,&pos1,&lit1,&pos2,&lit2);
-
-		for (int n = 0; n < 12; n++) {
-			if (pos1 == n) {
-				strip.setPixelColor(small[n],lit1,lit1,lit1);
-			} else if (pos2 == n) {
-				strip.setPixelColor(small[n],lit2,lit2,lit2);
-			} else {
-				strip.setPixelColor(small[n],0,0,0);
-			}
-		}
-
-		calc(24,clockMin,&pos1,&lit1,&pos2,&lit2);
-
-		for (int n = 0; n < 24; n++) {
-			if (pos1 == n) {
-				strip.setPixelColor(large[n],lit1,lit1,lit1);
-			} else if (pos2 == n) {
-				strip.setPixelColor(large[n],lit2,lit2,lit2);
-			} else {
-				strip.setPixelColor(large[n],0,0,0);
-			}
-		}
-
-		calc(24,clockSec,&pos1,&lit1,&pos2,&lit2);
-
-		for (int n = 0; n < 24; n++) {
-			if (pos1 == n) {
-				strip.setPixelColor(large[n],0,0,lit1);
-			} else if (pos2 == n) {
-				strip.setPixelColor(large[n],0,0,lit2);
-			} else {
-				strip.setPixelColor(large[n],0,0,0);
-			}
-		}
-		
-		strip.show();
-		
-	} // redrawClock()
-	
-	
-	void calc(int length,int value,int* pos1,int* lit1,int* pos2,int* lit2) {
-
-		// TODO: this.
-
-		return;
-	} // calc()
 
 
 	void loop() {
   
 	
 	} // loop
+	
+
+	void setStamp() {
+		
+		if (clockHour > 11) clockHour -= 12;
+		stamp = (clockHour * 12) + (clockMin * 60) + (clockSec * 100);
+		
+	} // setStamp()
+	
+	
+	void redrawClock() {
+	
+		for (int n = 0; n < 36; n++) strip.setPixelColor(n,0,0,0);
+
+		calc(12,12,4320000,360000);
+
+		for (int n = 0; n < 12; n++) {
+			if (pos1 == n) strip.setPixelColor(small[n],0,lit1 / 2,lit1);
+			if (pos2 == n) strip.setPixelColor(small[n],0,lit2 / 2,lit2);
+		}
+
+		calc(24,60,360000,6000);
+
+		for (int n = 0; n < 24; n++) {
+			if (pos1 == n) strip.setPixelColor(large[n],lit1,lit1,0);
+			if (pos2 == n) strip.setPixelColor(large[n],lit2,lit2,0);
+		}
+		
+		calc(24,60,6000,100);
+
+		for (int n = 0; n < 24; n++) {
+			if (pos1 == n) strip.setPixelColor(large[n],lit1,0,0);
+			if (pos2 == n) strip.setPixelColor(large[n],lit2,0,0);
+		}
+
+		strip.show();
+		
+	} // redrawClock() 
+	
+	
+	void calc(unsigned long int unitSlot,unsigned long int scaleSlot,unsigned long int mod,unsigned long int div) {
+
+		unsigned long int partStamp = stamp % mod;
+		
+		unsigned long int res = (255 * unitSlot * partStamp) / (scaleSlot * div);
+		pos1 = res / 255;
+		lit2 = res % 255;
+		 
+		pos2 = 1 + pos1;
+		if (pos2 == scaleSlot) pos2 = 0;
+		lit1 = 255 - lit2;		
+		
+		//printf(" val=%d/%d len=%d pos=%d:%d lit=%d:%d \n",value,limit,length,pos1,pos2,lit1,lit2);
+		return;
+	} // calc()
+
+
+
 

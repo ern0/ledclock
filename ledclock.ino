@@ -16,21 +16,21 @@ static char large[24] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,2
 static char small[12] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 
 # ifdef SDL_DISPLAY
-static unsigned char clockHour = HOUR;
-static unsigned char clockMin = MIN;
-static unsigned char clockSec = SEC;
+static unsigned long int clockHour = HOUR;
+static unsigned long int clockMin = MIN;
+static unsigned long int clockSec = SEC;
 # else
-static unsigned char clockHour = 19;
-static unsigned char clockMin = 28;
-static unsigned char clockSec = 20;
+static unsigned long int clockHour = 0;
+static unsigned long int clockMin = 51;
+static unsigned long int clockSec = 20;
 # endif
 
-static unsigned long int stamp = 0;
+static unsigned long int stamp;
 
-static unsigned long int pos1 = 0;
-static unsigned long int lit1 = 0;
-static unsigned long int pos2 = 0;
-static unsigned long int lit2 = 0;
+static unsigned long int pos1;
+static unsigned long int lit1;
+static unsigned long int pos2;
+static unsigned long int lit2;
 
 void tick();
 void setupTimerInterrupt();
@@ -51,9 +51,7 @@ void setupEmu();
 
 		strip.begin();
 		strip.setBrightness(40);
-		strip.show(); // Initialize all pixels to 'off'
-    for (int n = 0; n < 36; n++) strip.setPixelColor(n,255,0,255);
-    strip.show();
+		strip.show();
 
 		setStamp();
 		setupTimerInterrupt();
@@ -151,7 +149,7 @@ void setupEmu();
 	void tick() { // 100 Hz
 	
 		stamp++;
-		if (stamp > (60*60*12-1)) stamp = 0; 
+		if (stamp > (12*60*60*100-1)) stamp = 0; 
 
 		if (stamp % 5 == 0) redrawClock();
 	
@@ -159,16 +157,17 @@ void setupEmu();
 
 
 	void loop() {
-  
+
+		// nothing to do here
 	
 	} // loop
 	
 
 	void setStamp() {
-		
+
 		if (clockHour > 11) clockHour -= 12;
-		stamp = (clockHour * 12) + (clockMin * 60) + (clockSec * 100);
-		
+		stamp = (clockHour * 60*60*100) + (clockMin * 60*100) + (clockSec * 100);
+
 	} // setStamp()
 	
 	
@@ -214,10 +213,5 @@ void setupEmu();
 		if (pos2 == scaleSlot) pos2 = 0;
 		lit1 = 255 - lit2;		
 		
-		//printf(" val=%d/%d len=%d pos=%d:%d lit=%d:%d \n",value,limit,length,pos1,pos2,lit1,lit2);
 		return;
 	} // calc()
-
-
-
-

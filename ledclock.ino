@@ -20,9 +20,9 @@ static unsigned long int clockHour = HOUR;
 static unsigned long int clockMin = MIN;
 static unsigned long int clockSec = SEC;
 # else
-static unsigned long int clockHour = 0;
-static unsigned long int clockMin = 51;
-static unsigned long int clockSec = 20;
+static unsigned long int clockHour = 14;
+static unsigned long int clockMin = 53;
+static unsigned long int clockSec = 30;
 # endif
 
 static unsigned long int stamp;
@@ -32,11 +32,13 @@ static unsigned long int lit1;
 static unsigned long int pos2;
 static unsigned long int lit2;
 
+static bool redrawRequest = false;
+
 void tick();
 void setupTimerInterrupt();
 void setStamp();
 void redrawClock();
-void calc(unsigned long int unitSlot,unsigned long int scaleSlot,unsigned long int mod,unsigned long int div);
+void calc(unsigned long int scale,unsigned long int value);
 
 # ifdef SDL_DISPLAY
 void setupEmu();
@@ -62,8 +64,8 @@ void setupEmu();
 	# ifdef SDL_DISPLAY
 	void setupEmu() {
 
-		strip.emuSetGridScreenAnchor("ne");
-		strip.emuSetGridScreenPercent(20);
+		strip.emuSetGridScreenAnchor("c");
+		strip.emuSetGridScreenPercent(50);
 		strip.emuSetGridCells(36,36);
 		
 		int n = 0;
@@ -148,17 +150,19 @@ void setupEmu();
 
 	void tick() { // 100 Hz
 	
-		stamp++;
-		if (stamp > (12*60*60*100-1)) stamp = 0; 
+		stamp += 1;
+		if (stamp > (24*60*60*100-1)) stamp = 0; 
 
-		if (stamp % 5 == 0) redrawClock();
+		redrawRequest = true;
 	
 	} // tick()
 
 
 	void loop() {
 
-		// nothing to do here
+		if (!redrawRequest) return;
+		redrawClock();
+		redrawRequest = false;
 	
 	} // loop
 	
@@ -175,21 +179,21 @@ void setupEmu();
 	
 		for (int n = 0; n < 36; n++) strip.setPixelColor(n,0,0,0);
 
-		calc(12,12,4320000,360000);
+		calc(12,12*60*60*100);
 
 		for (int n = 0; n < 12; n++) {
 			if (pos1 == n) strip.setPixelColor(small[n],0,lit1 / 2,lit1);
 			if (pos2 == n) strip.setPixelColor(small[n],0,lit2 / 2,lit2);
 		}
 
-		calc(24,60,6000,100);
+		calc(24,60*60*100);
 
 		for (int n = 0; n < 24; n++) {
 			if (pos1 == n) strip.setPixelColor(large[n],lit1,0,0);
 			if (pos2 == n) strip.setPixelColor(large[n],lit2,0,0);
 		}
 
-		calc(24,60,360000,6000);
+		calc(24,60*100);
 
 		for (int n = 0; n < 24; n++) {
 			if (pos1 == n) strip.setPixelColor(large[n],lit1,lit1,0);
@@ -201,16 +205,16 @@ void setupEmu();
 	} // redrawClock() 
 	
 	
-	void calc(unsigned long int unitSlot,unsigned long int scaleSlot,unsigned long int mod,unsigned long int div) {
+	void calc(unsigned long int scale,unsigned long int modulo) {
 
-		unsigned long int partStamp = stamp % mod;
+		unsigned long int value = stamp % modulo;
 		
-		unsigned long int res = (255 * unitSlot * partStamp) / (scaleSlot * div);
-		pos1 = res / 255;
-		lit2 = res % 255;
-		 
+		pos1 = (255 * scale * value) / modulo;
+		lit2 = pos1 % 255;
+		pos1 = pos1 / 255;		
+			
 		pos2 = 1 + pos1;
-		if (pos2 == scaleSlot) pos2 = 0;
+		if (pos2 == scale) pos2 = 0;
 		lit1 = 255 - lit2;		
 		
 		return;

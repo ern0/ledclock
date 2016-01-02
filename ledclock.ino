@@ -20,12 +20,12 @@ static char large[24] = { 23,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,2
 static char small[12] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 # endif
 
-# ifdef SDL_DISPLAY
+# ifdef aSDL_DISPLAY
 static uint32_t clockHour = HOUR;
 static uint32_t clockMin = MIN;
 static uint32_t clockSec = SEC;
 # else
-static uint32_t clockHour = 2;
+static uint32_t clockHour = 9;
 static uint32_t clockMin = 4;
 static uint32_t clockSec = 0;
 # endif
@@ -212,12 +212,29 @@ void setupEmu();
       if (pos1 == n) strip.setPixelColor(large[n],lit1,0,0);
       if (pos2 == n) strip.setPixelColor(large[n],lit2,0,0);
     }
+    
+    uint32_t p1 = pos1;
+    uint32_t l1 = lit1;
+    uint32_t p2 = pos2;
+    uint32_t l2 = lit2;
 
     calc(24,(uint32_t)(60L*60L*100L),1L);
 
     for (int n = 0; n < 24; n++) {
-      if (pos1 == n) strip.setPixelColor(large[n],lit1,lit1,0);
-      if (pos2 == n) strip.setPixelColor(large[n],lit2,lit2,0);
+      if (pos1 == n) {
+				if (p1 == n || p2 == n) {
+					strip.setPixelColor(large[n],lit1,lit1 / 2,0);
+				} else {
+					strip.setPixelColor(large[n],lit1,lit1,0);
+				}
+			}
+      if (pos2 == n) {
+				if (p1 == n || p2 == n) {
+					strip.setPixelColor(large[n],lit2,lit2 / 2,0);
+				} else{
+					strip.setPixelColor(large[n],lit2,lit2,0);
+				}
+			}
     }
     
     strip.show();
@@ -227,10 +244,10 @@ void setupEmu();
   
   void calc(uint32_t scale,uint32_t modulo,uint32_t r) {
 
+		// TODO: some optimization, too many div and mod 
+		
     uint32_t value = stamp % modulo;
-    
     pos1 = (scale * value) / modulo;
-
 		uint32_t a = (value / r) * scale * 255;
 		lit2 = (a / (modulo / r)) % 255;
 		

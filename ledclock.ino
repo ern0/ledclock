@@ -20,7 +20,7 @@ static char large[24] = { 23,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,2
 static char small[12] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 # endif
 
-# ifdef aSDL_DISPLAY
+# ifdef SDL_DISPLAY
 static uint32_t clockHour = HOUR;
 static uint32_t clockMin = MIN;
 static uint32_t clockSec = SEC;

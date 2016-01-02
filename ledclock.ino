@@ -12,17 +12,22 @@ static uint8_t irqdiv = 0;
 # define PIN 13
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(24 + 12,PIN,NEO_GRB + NEO_KHZ800);
 
+# ifdef SDL_DISPLAY
 static char large[24] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 };
 static char small[12] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
+# else 
+static char large[24] = { 23,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22 };
+static char small[12] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
+# endif
 
 # ifdef SDL_DISPLAY
 static uint32_t clockHour = HOUR;
 static uint32_t clockMin = MIN;
 static uint32_t clockSec = SEC;
 # else
-static uint32_t clockHour = 20;
-static uint32_t clockMin = 35;
-static uint32_t clockSec = 45;
+static uint32_t clockHour = 2;
+static uint32_t clockMin = 4;
+static uint32_t clockSec = 0;
 # endif
 
 static uint32_t stamp;
@@ -38,7 +43,7 @@ void tick();
 void setupTimerInterrupt();
 void setStamp();
 void redrawClock();
-void calc(uint32_t scale,uint32_t value);
+void calc(uint32_t scale,uint32_t value,uint32_t reduce);
 
 # ifdef SDL_DISPLAY
 void setupEmu();
@@ -50,7 +55,7 @@ void setupEmu();
     # ifdef SDL_DISPLAY
       setupEmu();
     # endif
-
+    
     strip.begin();
     strip.setBrightness(40);
     strip.show();
@@ -65,7 +70,7 @@ void setupEmu();
   void setupEmu() {
 
     strip.emuSetGridScreenAnchor("ne");
-    strip.emuSetGridScreenPercent(20);
+    strip.emuSetGridScreenPercent(30);
     strip.emuSetGridCells(36,36);
     
     int n = 0;
@@ -136,7 +141,6 @@ void setupEmu();
   } // setupTimerInterrupt()
 
 
-
   ISR(TIMER2_COMPA_vect) {
   
     irqdiv++;
@@ -195,21 +199,21 @@ void setupEmu();
   
     for (int n = 0; n < 36; n++) strip.setPixelColor(n,0,0,0);
 
-    calc(12,(uint32_t)(12L*60L*60L*100L));
+    calc(12,(uint32_t)(12L*60L*60L*100L),1000L);
 
     for (int n = 0; n < 12; n++) {
       if (pos1 == n) strip.setPixelColor(small[n],0,lit1 / 2,lit1);
       if (pos2 == n) strip.setPixelColor(small[n],0,lit2 / 2,lit2);
     }
 
-    calc(24,(uint32_t)(60L*60L*100L));
+    calc(24,(uint32_t)(60L*100L),1L);
 
     for (int n = 0; n < 24; n++) {
       if (pos1 == n) strip.setPixelColor(large[n],lit1,0,0);
       if (pos2 == n) strip.setPixelColor(large[n],lit2,0,0);
     }
 
-    calc(24,(uint32_t)(60L*100L));
+    calc(24,(uint32_t)(60L*60L*100L),1L);
 
     for (int n = 0; n < 24; n++) {
       if (pos1 == n) strip.setPixelColor(large[n],lit1,lit1,0);
@@ -221,14 +225,15 @@ void setupEmu();
   } // redrawClock() 
   
   
-  void calc(uint32_t scale,uint32_t modulo) {
+  void calc(uint32_t scale,uint32_t modulo,uint32_t r) {
 
     uint32_t value = stamp % modulo;
     
-    pos1 = (255 * scale * value) / modulo;
-    lit2 = pos1 % 255;
     pos1 = (scale * value) / modulo;
-      
+
+		uint32_t a = (value / r) * scale * 255;
+		lit2 = (a / (modulo / r)) % 255;
+		
     pos2 = 1 + pos1;
     if (pos2 == scale) pos2 = 0;
     lit1 = 255 - lit2;    

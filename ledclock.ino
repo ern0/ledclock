@@ -21,13 +21,11 @@ static char small[12] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 # endif
 
 # ifdef SDL_DISPLAY
-static uint32_t clockHour = HOUR;
-static uint32_t clockMin = MIN;
-static uint32_t clockSec = SEC;
+# include "stamp.inc"
 # else
-static uint32_t clockHour = 9;
-static uint32_t clockMin = 4;
-static uint32_t clockSec = 0;
+static uint32_t clockHour = 20;
+static uint32_t clockMin = 42;
+static uint32_t clockSec = 20;
 # endif
 
 static uint32_t stamp;
@@ -57,7 +55,7 @@ void setupEmu();
     # endif
     
     strip.begin();
-    strip.setBrightness(40);
+    strip.setBrightness(50);
     strip.show();
 
     setStamp();
@@ -197,46 +195,51 @@ void setupEmu();
   
   void redrawClock() {
   
-    for (int n = 0; n < 36; n++) strip.setPixelColor(n,0,0,0);
-
     calc(12,(uint32_t)(12L*60L*60L*100L),1000L);
 
     for (int n = 0; n < 12; n++) {
+			if (n < pos1) strip.setPixelColor(small[n],0,10,20);
       if (pos1 == n) strip.setPixelColor(small[n],0,lit1 / 2,lit1);
       if (pos2 == n) strip.setPixelColor(small[n],0,lit2 / 2,lit2);
+      if (n > pos2) strip.setPixelColor(small[n],10,10,10);
     }
 
-    calc(24,(uint32_t)(60L*100L),1L);
+    calc(24,(uint32_t)(60L*60L*100L),1L);
 
     for (int n = 0; n < 24; n++) {
-      if (pos1 == n) strip.setPixelColor(large[n],lit1,0,0);
-      if (pos2 == n) strip.setPixelColor(large[n],lit2,0,0);
-    }
-    
+			if (n <= pos1) strip.setPixelColor(large[n],10,10,0);
+			if (n >= pos2) strip.setPixelColor(large[n],10,10,10);
+			if (pos1 == n && lit1 > 20) strip.setPixelColor(large[n],lit1,lit1,0);
+			if (pos2 == n && lit2 > 20)strip.setPixelColor(large[n],lit2,lit2,0);
+		}
+
     uint32_t p1 = pos1;
     uint32_t l1 = lit1;
     uint32_t p2 = pos2;
     uint32_t l2 = lit2;
 
-    calc(24,(uint32_t)(60L*60L*100L),1L);
+    calc(24,(uint32_t)(60L*100L),1L);
 
-    for (int n = 0; n < 24; n++) {
+		for (int n = 0; n < 24; n++) {
+		
       if (pos1 == n) {
 				if (p1 == n || p2 == n) {
-					strip.setPixelColor(large[n],lit1,lit1 / 2,0);
+					if (lit1 > 20) strip.setPixelColor(large[n],lit1,lit1 / 2,0);
 				} else {
-					strip.setPixelColor(large[n],lit1,lit1,0);
+					if (lit1 > 20) strip.setPixelColor(large[n],lit1,0,0);
 				}
 			}
+			
       if (pos2 == n) {
 				if (p1 == n || p2 == n) {
-					strip.setPixelColor(large[n],lit2,lit2 / 2,0);
+					if (lit2 > 20) strip.setPixelColor(large[n],lit2,lit2 / 2,0);
 				} else{
-					strip.setPixelColor(large[n],lit2,lit2,0);
+					if (lit2 > 20) strip.setPixelColor(large[n],lit2,0,0);
 				}
 			}
-    }
-    
+     
+    } // for ring
+
     strip.show();
     
   } // redrawClock() 

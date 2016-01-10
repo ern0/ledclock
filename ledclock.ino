@@ -6,6 +6,10 @@
 #include <Adafruit_NeoPixel.h>
 # endif
 
+# define FRONT_LEFT 1
+# define REAR_LEFT 3
+# define FRONT_RIGHT 4
+# define REAR_RIGHT 2
 
 static uint8_t irqdiv = 0;
 
@@ -42,6 +46,7 @@ void setupTimerInterrupt();
 void setStamp();
 void redrawClock();
 void calc(uint32_t scale,uint32_t value,uint32_t reduce);
+void buttonHandler();
 
 # ifdef SDL_DISPLAY
 void setupEmu();
@@ -53,6 +58,11 @@ void setupEmu();
     # ifdef SDL_DISPLAY
       setupEmu();
     # endif
+    
+    pinMode(FRONT_LEFT,INPUT_PULLUP);
+    pinMode(REAR_LEFT,INPUT_PULLUP);
+    pinMode(FRONT_RIGHT,INPUT_PULLUP);
+    pinMode(REAR_RIGHT,INPUT_PULLUP);
     
     strip.begin();
     strip.setBrightness(50);
@@ -151,9 +161,11 @@ void setupEmu();
   
 
   void tick() { // 100 Hz
-  
+
+    buttonHandler();
+
     stamp += 1;
-    if (stamp > (24*60*60*100-1)) stamp = 0; 
+    if (stamp > (24*60*60*100-1)) stamp -= (24*60*60*100-1);
 
     redrawRequest = true;
   
@@ -201,7 +213,7 @@ void setupEmu();
 			if (n < pos1) strip.setPixelColor(small[n],0,10,20);
       if (pos1 == n) strip.setPixelColor(small[n],0,lit1 / 2,lit1);
       if (pos2 == n) strip.setPixelColor(small[n],0,lit2 / 2,lit2);
-      if (n > pos2) strip.setPixelColor(small[n],10,10,10);
+      if (n > pos2) strip.setPixelColor(small[n],15,15,15);
     }
 
     calc(24,(uint32_t)(60L*60L*100L),1L);
@@ -253,12 +265,27 @@ void setupEmu();
     pos1 = (scale * value) / modulo;
 		uint32_t a = (value / r) * scale * 255;
 		lit2 = (a / (modulo / r)) % 255;
-		
+
+    if (pos1 == scale) pos1 = 0;
     pos2 = 1 + pos1;
     if (pos2 == scale) pos2 = 0;
     lit1 = 255 - lit2;    
     
     return;
   } // calc()
+
+
+  void buttonHandler() {
+ 
+    if (stamp % 20 == 0) {
+      if (analogRead(FRONT_LEFT) > 888) stamp += (60L * 60L * 100L);
+      if (analogRead(REAR_LEFT) > 888) stamp -= (60L * 60L * 100L);
+    }
+    if (stamp % 8 == 0) {
+      if (analogRead(FRONT_RIGHT) > 888) stamp += (60L * 100L);
+      if (analogRead(REAR_RIGHT) > 888) stamp -= (60L * 100L);
+    }
+
+  } // buttonHandler()
 
 

@@ -575,11 +575,13 @@
 
 	bool EthernetClass::begin(byte mac[6],IPAddress& ip) {
 		// this method is officially left blank		
+		return true;
 	} // begin()
 
 
 	bool EthernetClass::begin(byte mac[6],byte ip[4]) {
-		// this method is officially left blank		
+		// this method is officially left blank	
+		return true;	
 	} // begin()
 	
 
@@ -853,7 +855,7 @@
 		int retry = 0;
 		while (true) {
 
-			if (bind(fd,(struct sockaddr*)&servaddr,sizeof(servaddr)) == -1) {
+			if (::bind(fd,(struct sockaddr*)&servaddr,sizeof(servaddr)) == -1) {
 
 				if (errno == EADDRINUSE) {
 					if (retry == 0) {
@@ -1267,7 +1269,7 @@
 		if (strcasecmp(gridAnchor,"ne") == 0) {
 			horiz = 'R';
 			vert = 'T';
-		}
+		} 
 		if (strcasecmp(gridAnchor,"sw") == 0) {
 			horiz = 'L';
 			vert = 'B';
@@ -1276,7 +1278,7 @@
 			horiz = 'R';
 			vert = 'B';
 		}
-		if (debug) printf(" anchor param=%s horiz=%c vert=%C \n",gridAnchor,horiz,vert);
+		if (debug) printf(" anchor param=%s horiz=%c vert=%c \n",gridAnchor,horiz,vert);
 
 		switch (horiz) {
 		case 'L':

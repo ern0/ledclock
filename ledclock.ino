@@ -27,17 +27,20 @@ static char small[12] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 # ifdef SDL_DISPLAY
 # include "stamp.inc"
 # else
-static uint32_t clockHour = 20;
-static uint32_t clockMin = 42;
-static uint32_t clockSec = 20;
+static uint8_t clockHour = 20;
+static uint8_t clockMin = 42;
+static uint8_t clockSec = 20;
 # endif
+static uint8_t clockCent = 0;
 
 static uint32_t frame = 0;
 static bool redrawRequest = false;
+static uint32_t lastDeciOfHour;
 
 void setupTimerInterrupt();
 void tick();
 void buttonHandler();
+void incClock();
 void redrawClock();
 void calc(uint32_t scale,uint32_t value,uint32_t reduce);
 
@@ -157,11 +160,33 @@ void setupEmu();
   void tick() { // 100 Hz
 
     buttonHandler();
+    incClock();
 
     frame += 1;
     redrawRequest = true;
   
   } // tick()
+
+
+  void incClock() {
+
+    clockCent++;
+    if (clockCent < 100) return;
+    clockCent = 0;
+
+    clockSec++;
+    if (clockSec < 60) return;
+    clockSec = 0;
+    
+    clockMin++;
+    if (clockMin < 60) return;
+    clockMin = 0;
+
+    clockHour++;
+    if (clockHour < 12) return;
+    clockHour = 0;
+
+  } // incClock()
 
 
   void buttonHandler() {
@@ -221,6 +246,13 @@ void setupEmu();
   
   void redrawClock() {
   
+    uint32_t deciOfHour = clockCent / 10 * clockMin * 60 + clockSec;
+    if (deciOfHour == lastDeciOfHour) return;
+    lastDeciOfHour = deciOfHour;
+
+    uint32_t soh12 = (deciOfHour / 10 * 256) / (60 * 60);
+    printf("%d %d\n",deciOfHour / 10,soh12);
+
     for (int n = 0; n < 12; n++) {
     } // for inner
 

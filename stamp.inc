@@ -1,3 +1,3 @@
-static uint32_t clockHour = 14;
-static uint32_t clockMin = 0;
-static uint32_t clockSec = 50;
+static uint32_t clockHour = 22;
+static uint32_t clockMin = 3;
+static uint32_t clockSec = 37;

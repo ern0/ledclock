@@ -59,10 +59,10 @@ void setupEmu();
       setupEmu();
     # endif
     
-    pinMode(FRONT_LEFT,INPUT_PULLUP);
-    pinMode(REAR_LEFT,INPUT_PULLUP);
-    pinMode(FRONT_RIGHT,INPUT_PULLUP);
-    pinMode(REAR_RIGHT,INPUT_PULLUP);
+    //pinMode(FRONT_LEFT,INPUT_PULLUP);
+    //pinMode(REAR_LEFT,INPUT_PULLUP);
+    //pinMode(FRONT_RIGHT,INPUT_PULLUP);
+    //pinMode(REAR_RIGHT,INPUT_PULLUP);
     
     strip.begin();
     strip.setBrightness(50);

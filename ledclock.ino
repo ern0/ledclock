@@ -32,21 +32,15 @@ static uint32_t clockMin = 42;
 static uint32_t clockSec = 20;
 # endif
 
-static uint32_t stamp;
-
-static uint32_t pos1;
-static uint32_t lit1;
-static uint32_t pos2;
-static uint32_t lit2;
-
+static uint32_t frame = 0;
 static bool redrawRequest = false;
 
-void tick();
 void setupTimerInterrupt();
-void setStamp();
+void tick();
+void buttonHandler();
 void redrawClock();
 void calc(uint32_t scale,uint32_t value,uint32_t reduce);
-void buttonHandler();
+
 
 # ifdef SDL_DISPLAY
 void setupEmu();
@@ -59,19 +53,19 @@ void setupEmu();
       setupEmu();
     # endif
     
-    //pinMode(FRONT_LEFT,INPUT_PULLUP);
-    //pinMode(REAR_LEFT,INPUT_PULLUP);
-    //pinMode(FRONT_RIGHT,INPUT_PULLUP);
-    //pinMode(REAR_RIGHT,INPUT_PULLUP);
+    pinMode(FRONT_LEFT,INPUT);
+    pinMode(REAR_LEFT,INPUT);
+    pinMode(FRONT_RIGHT,INPUT);
+    pinMode(REAR_RIGHT,INPUT);
     
     strip.begin();
     strip.setBrightness(50);
     strip.show();
 
-    setStamp();
     setupTimerInterrupt();
     
   } // setup()
+
 
 
   # ifdef SDL_DISPLAY
@@ -164,12 +158,56 @@ void setupEmu();
 
     buttonHandler();
 
-    stamp += 1;
-    if (stamp > (24*60*60*100-1)) stamp -= (24*60*60*100-1);
-
+    frame += 1;
     redrawRequest = true;
   
   } // tick()
+
+
+  void buttonHandler() {
+ 
+    if (frame % 20 == 0) {
+
+      if (analogRead(FRONT_LEFT) > 888) {
+        if (clockHour == 11) {
+          clockHour = 0;
+        } else {
+          clockHour++;
+        }
+      } // if inc hour
+
+      if (analogRead(REAR_LEFT) > 888) {
+        if (clockHour == 0) {
+          clockHour = 11;
+        } else {
+          --clockHour;
+        }
+      } // if dec hour
+
+    } // if hour
+
+
+    if (frame % 8 == 0) {
+
+      if (analogRead(FRONT_RIGHT) > 888) {
+        if (clockMin == 59) {
+          clockMin = 0;
+        } else {
+          clockMin++;
+        }
+      } // if inc min
+
+      if (analogRead(REAR_RIGHT) > 888) {
+        if (clockMin == 0) {
+          clockMin = 59;
+        } else {
+          --clockMin;
+        }
+      } // if dec min
+
+    } // if min
+
+  } // buttonHandler()
 
 
   void loop() {
@@ -181,111 +219,16 @@ void setupEmu();
   } // loop
   
   
-  void pri(uint32_t num) {
-
-    Serial.print((uint16_t)(num >> 0x10));
-    Serial.print(":");
-    Serial.println((uint16_t)(num & 0xFFFF));
-    
-  } // pri()
-
-
-  void setStamp() {
-
-    uint32_t h;
-    uint32_t m;
-    uint32_t s;
-
-    h = clockHour * (60L * 60L * 100L);
-    m = clockMin * (60L * 100L);
-    s = clockSec * 100L;
-    
-    stamp = h + m + s; 
-
-  } // setStamp()
-  
-  
   void redrawClock() {
   
-    calc(12,(uint32_t)(12L*60L*60L*100L),1000L);
-
     for (int n = 0; n < 12; n++) {
-			if (n < pos1) strip.setPixelColor(small[n],0,10,20);
-      if (pos1 == n) strip.setPixelColor(small[n],0,lit1 / 2,lit1);
-      if (pos2 == n) strip.setPixelColor(small[n],0,lit2 / 2,lit2);
-      if (n > pos2) strip.setPixelColor(small[n],15,15,15);
-    }
-
-    calc(24,(uint32_t)(60L*60L*100L),1L);
+    } // for inner
 
     for (int n = 0; n < 24; n++) {
-			if (n <= pos1) strip.setPixelColor(large[n],10,10,0);
-			if (n >= pos2) strip.setPixelColor(large[n],10,10,10);
-			if (pos1 == n && lit1 > 20) strip.setPixelColor(large[n],lit1,lit1,0);
-			if (pos2 == n && lit2 > 20)strip.setPixelColor(large[n],lit2,lit2,0);
-		}
+		} // for outer
 
-    uint32_t p1 = pos1;
-    uint32_t l1 = lit1;
-    uint32_t p2 = pos2;
-    uint32_t l2 = lit2;
-
-    calc(24,(uint32_t)(60L*100L),1L);
-
-		for (int n = 0; n < 24; n++) {
-		
-      if (pos1 == n) {
-				if (p1 == n || p2 == n) {
-					if (lit1 > 20) strip.setPixelColor(large[n],lit1,lit1 / 2,0);
-				} else {
-					if (lit1 > 20) strip.setPixelColor(large[n],lit1,0,0);
-				}
-			}
-			
-      if (pos2 == n) {
-				if (p1 == n || p2 == n) {
-					if (lit2 > 20) strip.setPixelColor(large[n],lit2,lit2 / 2,0);
-				} else{
-					if (lit2 > 20) strip.setPixelColor(large[n],lit2,0,0);
-				}
-			}
-     
-    } // for ring
 
     strip.show();
     
   } // redrawClock() 
   
-  
-  void calc(uint32_t scale,uint32_t modulo,uint32_t r) {
-
-		// TODO: some optimization, too many div and mod 
-		
-    uint32_t value = stamp % modulo;
-    pos1 = (scale * value) / modulo;
-		uint32_t a = (value / r) * scale * 255;
-		lit2 = (a / (modulo / r)) % 255;
-
-    if (pos1 == scale) pos1 = 0;
-    pos2 = 1 + pos1;
-    if (pos2 == scale) pos2 = 0;
-    lit1 = 255 - lit2;    
-    
-    return;
-  } // calc()
-
-
-  void buttonHandler() {
- 
-    if (stamp % 20 == 0) {
-      if (analogRead(FRONT_LEFT) > 888) stamp += (60L * 60L * 100L);
-      if (analogRead(REAR_LEFT) > 888) stamp -= (60L * 60L * 100L);
-    }
-    if (stamp % 8 == 0) {
-      if (analogRead(FRONT_RIGHT) > 888) stamp += (60L * 100L);
-      if (analogRead(REAR_RIGHT) > 888) stamp -= (60L * 100L);
-    }
-
-  } // buttonHandler()
-
-

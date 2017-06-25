@@ -1,7 +1,7 @@
 # if ( defined(__unix__) || defined(__APPLE__) )
 # define SDL_DISPLAY (0)
 # define TIMER2 ( 1000 / 100 )   
-# include "posixino/posixino.cpp"
+# include "../posixino/posixino.cpp"
 # else
 #include <Adafruit_NeoPixel.h>
 # endif

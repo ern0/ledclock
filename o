@@ -1,0 +1,4 @@
+#!/bin/bash
+clear
+
+pio run -t upload -e arduino

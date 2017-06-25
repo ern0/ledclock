@@ -11,18 +11,20 @@
 # define FRONT_RIGHT 4
 # define REAR_RIGHT 2
 
-static uint8_t irqdiv = 0;
-
 # define PIN 13
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(24 + 12,PIN,NEO_GRB + NEO_KHZ800);
+# define LARGE_PIX 24
+# define SMALL_PIX 12
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + NEO_KHZ800);
 
 # ifdef SDL_DISPLAY
-static char large[24] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 };
-static char small[12] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
+static char large[LARGE_PIX] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 };
+static char small[SMALL_PIX] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 # else 
-static char large[24] = { 23,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22 };
-static char small[12] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
+static char large[LARGE_PIX] = { 23,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22 };
+static char small[SMALL_PIX] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 # endif
+
+static uint8_t irqdiv = 0;
 
 # ifdef SDL_DISPLAY
 # include "stamp.inc"
@@ -34,15 +36,29 @@ static uint8_t clockSec = 20;
 static uint8_t clockCent = 0;
 
 static uint32_t frame = 0;
-static bool redrawRequest = false;
-static uint32_t lastDeciOfHour;
+static bool updateRequest = false;
+static uint32_t lastValue = 0;
+
+#define BRITE_PAST 0x55
+#define BRITE_FUTURE 0x33
+#define BRITE_OVERDRIVE 0x33
+
+#define CENT_HOUR_TOTAL (60 * 60 * 100)
+uint8_t hourFadeOutPos;
+uint8_t hourFadeInPos;
+uint16_t hourFadeOutValue;
+uint16_t hourFadeInValue;
+uint32_t centInHourValue;
+uint32_t centOutHourValue;
+
 
 void setupTimerInterrupt();
 void tick();
 void buttonHandler();
 void incClock();
+void calcSmall();
+void calcLarge();
 void redrawClock();
-void calc(uint32_t scale,uint32_t value,uint32_t reduce);
 
 
 # ifdef SDL_DISPLAY
@@ -160,10 +176,11 @@ void setupEmu();
   void tick() { // 100 Hz
 
     buttonHandler();
+    for (int n = 0; n < 40; n++) ///
     incClock();
 
     frame += 1;
-    redrawRequest = true;
+    updateRequest = true;
   
   } // tick()
 
@@ -171,7 +188,7 @@ void setupEmu();
   void incClock() {
 
     clockCent++;
-    if (clockCent < 100) return;
+    ///if (clockCent < 100) return;
     clockCent = 0;
 
     clockSec++;
@@ -237,27 +254,94 @@ void setupEmu();
 
   void loop() {
 
-    if (!redrawRequest) return;
+    if (!updateRequest) return;
+    
+    calcSmall();
+    calcLarge();
     redrawClock();
-    redrawRequest = false;
+    
+    updateRequest = false;
   
   } // loop
   
-  
-  void redrawClock() {
-  
-    uint32_t deciOfHour = clockCent / 10 * clockMin * 60 + clockSec;
-    if (deciOfHour == lastDeciOfHour) return;
-    lastDeciOfHour = deciOfHour;
 
-    uint32_t soh12 = (deciOfHour / 10 * 256) / (60 * 60);
-    printf("%d %d\n",deciOfHour / 10,soh12);
+  void calcSmall() {
+
+    // calculate hour positions (small ring)
+    
+    uint8_t clockHour12 = clockHour;
+    if (clockHour12 > 11) clockHour -= 12;
+    hourFadeOutPos = SMALL_PIX * clockHour12 / 12;
+    
+    hourFadeInPos = hourFadeOutPos + 1;
+    if (hourFadeInPos >= SMALL_PIX) hourFadeInPos -= SMALL_PIX;
+
+    // calculate hour crossfade
+    
+    centInHourValue = (((clockMin * 60) + clockSec) * 100) + clockCent;
+    centOutHourValue = CENT_HOUR_TOTAL - centInHourValue;
+
+    if (hourFadeInPos == 0) {
+      hourFadeInValue = centInHourValue / (CENT_HOUR_TOTAL / (256 - BRITE_PAST + BRITE_OVERDRIVE));
+      hourFadeInValue += BRITE_PAST;
+    } else {
+      hourFadeInValue = centInHourValue / (CENT_HOUR_TOTAL / (256 - BRITE_FUTURE + BRITE_OVERDRIVE));
+      hourFadeInValue += BRITE_FUTURE;
+   }
+    if (hourFadeInValue > 255) hourFadeInValue = 255;
+
+    hourFadeOutValue = centOutHourValue / (CENT_HOUR_TOTAL / (256 - BRITE_PAST + BRITE_OVERDRIVE));
+    hourFadeOutValue += BRITE_PAST;
+    if (hourFadeOutValue > 255) hourFadeOutValue = 255;
+
+  } // calcSmall()
+
+
+  void calcLarge() {
+
+  } // calcLarge()
+
+
+  void redrawClock() {
+
+    // if (deciOfHour == lastValue) return;
+    // lastValue = deciOfHour;
+
+
+    if (false)
+    printf(
+      "H: %d->%d C: %d:%d:%d Fade: %d:%d\n"
+      ,(int)hourFadeOutPos
+      ,(int)hourFadeInPos
+      ,centInHourValue
+      ,centOutHourValue
+      ,CENT_HOUR_TOTAL
+      ,(int)hourFadeOutValue
+      ,(int)hourFadeInValue
+    );
 
     for (int n = 0; n < 12; n++) {
-    } // for inner
+
+      if (n == hourFadeOutPos) {
+        strip.setPixelColor(small[n],0,0,hourFadeOutValue);
+        continue;
+      }
+
+      if (n == hourFadeInPos) {
+        strip.setPixelColor(small[n],0,0,hourFadeInValue);
+        continue;        
+      }
+
+      if (n < hourFadeOutPos) {
+        strip.setPixelColor(small[n],0,0,BRITE_PAST);
+      } else {
+        strip.setPixelColor(small[n],0,0,BRITE_FUTURE);
+      }
+
+    } // for small
 
     for (int n = 0; n < 24; n++) {
-		} // for outer
+		} // for large
 
 
     strip.show();

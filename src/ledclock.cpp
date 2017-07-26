@@ -39,8 +39,8 @@ static uint32_t frame = 0;
 static bool updateRequest = false;
 static uint32_t lastValue = 0;
 
-#define BRITE_PAST 0x55
-#define BRITE_FUTURE 0x33
+#define BRITE_PAST 0x22
+#define BRITE_FUTURE 0x11
 #define BRITE_OVERDRIVE 0x33
 
 #define CENT_HOUR_TOTAL (60 * 60 * 100)
@@ -176,7 +176,7 @@ void setupEmu();
   void tick() { // 100 Hz
 
     buttonHandler();
-    for (int n = 0; n < 40; n++) ///
+    for (int n = 0; n < 900; n++) ///
     incClock();
 
     frame += 1;
@@ -188,7 +188,7 @@ void setupEmu();
   void incClock() {
 
     clockCent++;
-    ///if (clockCent < 100) return;
+    if (clockCent < 100) return;
     clockCent = 0;
 
     clockSec++;

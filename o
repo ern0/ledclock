@@ -2,3 +2,4 @@
 clear
 
 pio run -t upload -e arduino
+#pio run -e arduino

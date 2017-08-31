@@ -81,6 +81,8 @@ void setupEmu();
     strip.setBrightness(50);
     strip.show();
 
+    Serial.begin(38400);
+
     setupTimerInterrupt();
     
   } // setup()
@@ -308,8 +310,9 @@ void setupEmu();
     // lastValue = deciOfHour;
 
 
-    if (false)
-    printf(
+    # if 1
+    static unsigned char buffer[120];
+    sprintf(buffer,
       "H: %d->%d C: %d:%d:%d Fade: %d:%d\n"
       ,(int)hourFadeOutPos
       ,(int)hourFadeInPos
@@ -319,6 +322,8 @@ void setupEmu();
       ,(int)hourFadeOutValue
       ,(int)hourFadeInValue
     );
+    Serial.write(buffer,strlen(buffer));
+    # endif
 
     for (int n = 0; n < 12; n++) {
 

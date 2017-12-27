@@ -1,3 +1,3 @@
-static uint8_t clockHour = 11;
-static uint8_t clockMin = 26;
-static uint8_t clockSec = 37;
+static int8_t clockHour = 23;
+static int8_t clockMin = 4;
+static int8_t clockSec = 51;

@@ -26,16 +26,19 @@ static char small[SMALL_PIX] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 #define BRITE_FUTURE 0x11
 #define BRITE_OVERDRIVE 0x33
 
-#define CENT_HOUR_TOTAL (60 * 60 * 100)
-
 
 void setupTimerInterrupt();
 void tick();
-void buttonHandler();
-void incClock();
-void calcSmall();
-void calcLarge();
-void redrawClock();
+inline void buttonHandler();
+inline void incDeci();
+inline void incSec();
+inline void incMin();
+inline void decMin();
+inline void incHour();
+inline void decHour();
+inline void calcSmall();
+inline void calcLarge();
+inline void redrawClock();
 
 
 # ifdef SDL_DISPLAY

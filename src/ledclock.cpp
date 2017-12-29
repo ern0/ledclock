@@ -18,10 +18,10 @@ static int8_t clockDeci = 0;
 static uint16_t frame = 0;
 static bool updateRequest = false;
 
-static uint8_t smallFadeOutPos;
-static uint8_t smallFadeInPos;
-static uint8_t smallFadeOutValue;
-static uint8_t smallFadeInValue;
+static int8_t hourFadeOutPos;
+static int8_t hourFadeInPos;
+static uint8_t hourFadeOutValue;
+static uint8_t hourFadeInValue;
 
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + NEO_KHZ800);
@@ -55,8 +55,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
 
     if (!updateRequest) return;
     
-    calcSmall();
-    calcLarge();
+    calcHour();
     redrawClock();
     
     updateRequest = false;
@@ -97,7 +96,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
   void tick() { // 10 Hz
 
     buttonHandler();
-    for (int n = 0; n < 90; n++) ///
+    for (int n = 0; n < 900; n++) ///
       incDeci();
 
     updateRequest = true;
@@ -184,37 +183,60 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
   } // decHour()
 
 
-  void calcSmall() {
+  void calcHour() {
 
-    smallFadeOutPos = 0;
-    smallFadeInPos = 1;
-    smallFadeOutValue = 0x33;
-    smallFadeInValue = 0xcc;
+    const uint16_t nofPixels = 12;
+    const uint16_t fullSlots = (12 * 60 * 60);
+    const uint16_t pixelSlots = fullSlots / nofPixels;
+    const uint16_t pixelToByte = pixelSlots / 256;
 
-  } // calcSmall()
+    uint16_t actualSlot =
+      (clockHour * 60 * 60) +
+      (clockMin * 60) +
+      (clockSec)
+    ;
 
+    hourFadeOutPos = actualSlot / pixelSlots;
+    hourFadeInPos = hourFadeOutPos + 1;
+    if (hourFadeInPos >= nofPixels) hourFadeInPos = 0;
 
-  void calcLarge() {
+    hourFadeInValue = ( actualSlot % pixelSlots ) / pixelToByte;    
+    if (hourFadeInValue < BRITE_LOW) hourFadeInValue = BRITE_LOW;
 
-  } // calcLarge()
+    hourFadeOutValue = 256 - hourFadeInValue;
+    if (hourFadeOutValue < BRITE_LOW) hourFadeOutValue = BRITE_LOW;
+
+    printf(
+      "%02d:%02d:%02d "
+      "full=%d actual=%d %d->%d %d:%d \n"
+      ,(int)clockHour
+      ,(int)clockMin
+      ,(int)clockSec
+      ,(int)fullSlots
+      ,(int)actualSlot
+      ,hourFadeOutPos
+      ,hourFadeInPos
+      ,hourFadeOutValue
+      ,hourFadeInValue
+    );
+
+  } // calcHour()
 
 
   void redrawClock() {
 
-
-    # if 1
+    # if 0
       static char buffer[120];
       sprintf(buffer,
-        "TIME: %02d:%02d:%02d.%01d "
-        "small pos: %d->%d fade: %d:%d \n"
+        "%02d:%02d:%02d "
+        "H: %d->%d $%02X:$%02X \n"
         ,(int)clockHour
         ,(int)clockMin
         ,(int)clockSec
-        ,(int)clockDeci
-        ,(int)smallFadeOutPos
-        ,(int)smallFadeInPos
-        ,(int)smallFadeOutValue
-        ,(int)smallFadeInValue
+        ,(int)hourFadeOutPos
+        ,(int)hourFadeInPos
+        ,(int)hourFadeOutValue
+        ,(int)hourFadeInValue
       );
       # ifdef SDL_DISPLAY
         printf("%s",buffer);
@@ -223,31 +245,43 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
       # endif
     # endif
 
+    redrawSmall();
+    redrawLarge();
+
+    strip.show();
+
+  } // redrawClock()
+
+
+  void redrawSmall() {
+
     for (int n = 0; n < 12; n++) {
 
-      if (n == smallFadeOutPos) {
-        strip.setPixelColor(small[n],0,0,smallFadeOutValue);
+      if (n == hourFadeOutPos) {
+        strip.setPixelColor(small[n],0,0,hourFadeOutValue);
         continue;
       }
 
-      if (n == smallFadeInPos) {
-        strip.setPixelColor(small[n],0,0,smallFadeInValue);
+      if (n == hourFadeInPos) {
+        strip.setPixelColor(small[n],0,0,hourFadeInValue);
         continue;        
       }
 
-      if (n < smallFadeOutPos) {
-        strip.setPixelColor(small[n],0,0,BRITE_PAST);
-      } else {
-        strip.setPixelColor(small[n],0,0,BRITE_FUTURE);
-      }
+      strip.setPixelColor(small[n],0,0,BRITE_LOW);
 
     } // for small
 
+   
+  } // redrawSmall() 
+
+
+  void redrawLarge() {
+
     for (int n = 0; n < 24; n++) {
-		} // for large
+      
+      /// TODO
 
-
-    strip.show();
-    
-  } // redrawClock() 
+    } // for large
+ 
+  } // redrawLarge()
   

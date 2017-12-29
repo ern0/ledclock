@@ -22,9 +22,7 @@ static char small[SMALL_PIX] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 # endif
 
 
-#define BRITE_PAST 0x22
-#define BRITE_FUTURE 0x11
-#define BRITE_OVERDRIVE 0x33
+#define BRITE_LOW 0x08
 
 
 void setupTimerInterrupt();
@@ -36,9 +34,10 @@ inline void incMin();
 inline void decMin();
 inline void incHour();
 inline void decHour();
-inline void calcSmall();
-inline void calcLarge();
+inline void calcHour();
 inline void redrawClock();
+inline void redrawSmall();
+inline void redrawLarge();
 
 
 # ifdef SDL_DISPLAY

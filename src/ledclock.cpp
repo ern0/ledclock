@@ -7,11 +7,11 @@
 static uint8_t irqdiv = 0;
 
 # ifdef SDL_DISPLAY
-# include "stamp.inc"
-# else
-static int8_t clockHour = 20 % 12;
-static int8_t clockMin = 42;
-static int8_t clockSec = 20;
+//# include "stamp.inc"
+//# else
+static int8_t clockHour = 15 % 12;
+static int8_t clockMin = 45;
+static int8_t clockSec = 35;
 # endif
 static int8_t clockCenti = 0;
 
@@ -117,7 +117,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
     if (irqdiv < 10) return;
     irqdiv = 0;
     
-for (int n = 0; n < 22; n++)
+for (int n = 0; n < 3; n++)
     tick();  // 100 Hz
     
   } // ISR()
@@ -334,6 +334,46 @@ for (int n = 0; n < 22; n++)
   void redrawLarge() {
 
     for (int n = 0; n < LARGE_PIX; n++) {
+
+      if (n == secFadeOutPos) {
+
+        if (n == minFadeOutPos) {
+          mixPix(n,minFadeOutValue,secFadeOutValue);
+          continue;
+        }
+        if (n == minFadeInPos) {
+          mixPix(n,minFadeInValue,secFadeOutValue);
+          continue;
+        }
+
+        strip.setPixelColor(
+          large[n]
+          ,secFadeOutValue
+          ,0
+          ,0
+        );
+        continue;
+      }
+
+      if (n == secFadeInPos) {
+
+        if (n == minFadeOutPos) {
+          mixPix(n,minFadeOutValue,secFadeInValue);
+          continue;
+        }
+        if (n == minFadeInPos) {
+          mixPix(n,minFadeInValue,secFadeInValue);
+          continue;
+        }
+
+        strip.setPixelColor(
+          large[n]
+          ,secFadeInValue
+          ,0
+          ,0
+        );
+        continue;        
+      }
       
       if (n == minFadeOutPos) {
         strip.setPixelColor(
@@ -363,6 +403,22 @@ for (int n = 0; n < 22; n++)
       );
 
     } // for large
- 
+
   } // redrawLarge()
+
+
+  void mixPix(uint8_t pos,uint8_t min,uint8_t sec) {
+
+    uint8_t red = (sec + min) / 2;
+    uint8_t green = sec / 2;
+
+    strip.setPixelColor(
+      large[pos]
+      ,red
+      ,green
+      ,0
+    );
+
+  } // mixPix()
+ 
   

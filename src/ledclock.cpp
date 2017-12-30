@@ -6,13 +6,13 @@
 
 static uint8_t irqdiv = 0;
 
-# ifdef SDL_DISPLAY
+//# ifdef SDL_DISPLAY
 //# include "stamp.inc"
 //# else
 static int8_t clockHour = 15 % 12;
 static int8_t clockMin = 45;
 static int8_t clockSec = 35;
-# endif
+//# endif
 static int8_t clockCenti = 0;
 
 static int8_t showHour;
@@ -341,17 +341,13 @@ for (int n = 0; n < 3; n++)
           mixPix(n,minFadeOutValue,secFadeOutValue);
           continue;
         }
+
         if (n == minFadeInPos) {
           mixPix(n,minFadeInValue,secFadeOutValue);
           continue;
         }
 
-        strip.setPixelColor(
-          large[n]
-          ,secFadeOutValue
-          ,0
-          ,0
-        );
+        mixPix(n,DARK_LARGE,secFadeOutValue);
         continue;
       }
 
@@ -361,18 +357,14 @@ for (int n = 0; n < 3; n++)
           mixPix(n,minFadeOutValue,secFadeInValue);
           continue;
         }
+
         if (n == minFadeInPos) {
           mixPix(n,minFadeInValue,secFadeInValue);
           continue;
         }
 
-        strip.setPixelColor(
-          large[n]
-          ,secFadeInValue
-          ,0
-          ,0
-        );
-        continue;        
+        mixPix(n,DARK_LARGE,secFadeInValue);
+        continue;
       }
       
       if (n == minFadeOutPos) {
@@ -409,8 +401,16 @@ for (int n = 0; n < 3; n++)
 
   void mixPix(uint8_t pos,uint8_t min,uint8_t sec) {
 
-    uint8_t red = (sec + min) / 2;
-    uint8_t green = sec / 2;
+    uint8_t red;
+    uint8_t green;
+
+    if (min == DARK_LARGE) {
+      red = ( sec > min ? sec : min );
+      green = min;
+    } else {
+      green = sec / 2;
+      red = sec;
+    }
 
     strip.setPixelColor(
       large[pos]

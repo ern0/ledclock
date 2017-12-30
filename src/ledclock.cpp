@@ -11,7 +11,7 @@ static uint8_t irqdiv = 0;
 //# else
 static int8_t clockHour = 15 % 12;
 static int8_t clockMin = 45;
-static int8_t clockSec = 35;
+static int8_t clockSec = 15;   /// 45
 //# endif
 static int8_t clockCenti = 0;
 
@@ -241,8 +241,6 @@ for (int n = 0; n < 3; n++)
 
     hourFadeInValue = (actualSlot % pixelSlots) / pixelToByte;
     hourFadeOutValue = 255 - hourFadeInValue;
-    if (hourFadeInValue < DARK_SMALL) hourFadeInValue = DARK_SMALL;
-    if (hourFadeOutValue < DARK_SMALL) hourFadeOutValue = DARK_SMALL;
 
   } // calcHour()
 
@@ -299,6 +297,7 @@ for (int n = 0; n < 3; n++)
     for (int n = 0; n < SMALL_PIX; n++) {
 
       if (n == hourFadeOutPos) {
+        if (hourFadeOutValue < DARK_SMALL) hourFadeOutValue = DARK_SMALL;
         strip.setPixelColor(
           small[n]
           ,0
@@ -309,6 +308,7 @@ for (int n = 0; n < 3; n++)
       }
 
       if (n == hourFadeInPos) {
+        if (hourFadeInValue < DARK_SMALL) hourFadeInValue = DARK_SMALL;
         strip.setPixelColor(
           small[n]
           ,0
@@ -318,12 +318,7 @@ for (int n = 0; n < 3; n++)
         continue;        
       }
 
-      strip.setPixelColor(
-        small[n]
-        ,0
-        ,0
-        ,DARK_SMALL
-      );
+      strip.setPixelColor(small[n],0,0,DARK_SMALL);
 
     } // for small
 
@@ -367,17 +362,8 @@ for (int n = 0; n < 3; n++)
         continue;
       }
       
-      if (n == minFadeOutPos) {
-        strip.setPixelColor(
-          large[n]
-          ,minFadeOutValue
-          ,minFadeOutValue
-          ,0
-        );
-        continue;
-      }
-
       if (n == minFadeInPos) {
+        if (minFadeInValue < DARK_LARGE) minFadeInValue = DARK_LARGE;
         strip.setPixelColor(
           large[n]
           ,minFadeInValue
@@ -387,12 +373,18 @@ for (int n = 0; n < 3; n++)
         continue;        
       }
 
-      strip.setPixelColor(
-        large[n]
-        ,DARK_LARGE
-        ,DARK_LARGE
-        ,0
-      );
+      if (n == minFadeOutPos) {
+        if (minFadeOutValue < DARK_LARGE) minFadeOutValue = DARK_LARGE;
+        strip.setPixelColor(
+          large[n]
+          ,minFadeOutValue
+          ,minFadeOutValue
+          ,0
+        );
+        continue;
+      }
+
+      strip.setPixelColor(large[n],DARK_LARGE,DARK_LARGE,0);
 
     } // for large
 
@@ -405,11 +397,19 @@ for (int n = 0; n < 3; n++)
     uint8_t green;
 
     if (min == DARK_LARGE) {
-      red = ( sec > min ? sec : min );
-      green = min;
+
+
+      if (sec == min) {
+        red = 255;
+      } else {
+        red = 127;
+        green = 127;
+      }
+
+
     } else {
-      green = sec / 2;
-      red = sec;
+      green = 0;
+      red = 0;
     }
 
     strip.setPixelColor(

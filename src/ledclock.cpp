@@ -9,7 +9,7 @@ static uint8_t irqdiv = 0;
 # ifdef SDL_DISPLAY
 # include "stamp.inc"
 # else
-static int8_t clockHour = 20;
+static int8_t clockHour = 20 % 12;
 static int8_t clockMin = 42;
 static int8_t clockSec = 20;
 # endif
@@ -154,7 +154,7 @@ for (int n = 0; n < 22; n++)
 
     showHour = clockHour;
     showMin = clockMin;
-    showSec = clockSec;
+    showSec = clockSec; 
     showCenti = clockCenti;
     showDeci = showCenti / 10;
 

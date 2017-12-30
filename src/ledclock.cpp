@@ -102,6 +102,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
     if (irqdiv < 10) return;
     irqdiv = 0;
     
+    for (int n = 0; n < 100; n++)
     tick();  // 100 Hz
     
   } // ISR()
@@ -288,16 +289,31 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
     for (int n = 0; n < SMALL_PIX; n++) {
 
       if (n == hourFadeOutPos) {
-        strip.setPixelColor(small[n],0,DARK_SMALL,hourFadeOutValue);
+        strip.setPixelColor(
+          small[n]
+          ,0
+          ,hourFadeOutValue / 2
+          ,hourFadeOutValue
+        );
         continue;
       }
 
       if (n == hourFadeInPos) {
-        strip.setPixelColor(small[n],0,DARK_SMALL,hourFadeInValue);
+        strip.setPixelColor(
+          small[n]
+          ,0
+          ,hourFadeInValue / 2
+          ,hourFadeInValue
+        );
         continue;        
       }
 
-      strip.setPixelColor(small[n],0,0,DARK_SMALL);
+      strip.setPixelColor(
+        small[n]
+        ,0
+        ,0
+        ,DARK_SMALL
+      );
 
     } // for small
 

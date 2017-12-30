@@ -29,8 +29,8 @@ static char small[SMALL_PIX] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 void setupTimerInterrupt();
 void tick();
 inline void buttonHandler();
+inline void snapshotTime();
 inline void incCenti();
-inline void calcDeci();
 inline void incSec();
 inline void incMin();
 inline void decMin();
@@ -39,7 +39,6 @@ inline void decHour();
 inline void calcHour();
 inline void calcMin();
 inline void calcSec();
-inline void redrawClock();
 inline void redrawSmall();
 inline void redrawLarge();
 

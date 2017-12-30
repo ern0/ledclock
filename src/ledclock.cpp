@@ -13,8 +13,13 @@ static int8_t clockHour = 20;
 static int8_t clockMin = 42;
 static int8_t clockSec = 20;
 # endif
-static int8_t clockDeci = 0;
 static int8_t clockCenti = 0;
+
+static int8_t showHour;
+static int8_t showMin;
+static int8_t showSec;
+static int8_t showDeci;
+static int8_t showCenti;
 
 static uint16_t frame = 0;
 static bool updateRequest = false;
@@ -28,6 +33,11 @@ static int8_t minFadeOutPos;
 static int8_t minFadeInPos;
 static uint8_t minFadeOutValue;
 static uint8_t minFadeInValue;
+
+static int8_t secFadeOutPos;
+static int8_t secFadeInPos;
+static uint8_t secFadeOutValue;
+static uint8_t secFadeInValue;
 
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + NEO_KHZ800);
@@ -65,15 +75,20 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
 
   void loop() {
 
-    if (!updateRequest) return;
-    
+    if (!updateRequest) return;    
+
+    snapshotTime();
+
     calcHour();
-    ///calcMin();
+    calcMin();
     calcSec();
-    redrawClock();
-    
-    updateRequest = false;
+
+    redrawSmall();
+    redrawLarge();
+    strip.show();    
   
+    updateRequest = false;
+
   } // loop
   
 
@@ -102,7 +117,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
     if (irqdiv < 10) return;
     irqdiv = 0;
     
-    for (int n = 0; n < 100; n++)
+for (int n = 0; n < 22; n++)
     tick();  // 100 Hz
     
   } // ISR()
@@ -112,7 +127,6 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
 
     buttonHandler();
     incCenti();
-    calcDeci();
 
     updateRequest = true;
   
@@ -136,6 +150,17 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
   } // buttonHandler()
 
 
+  void snapshotTime() {
+
+    showHour = clockHour;
+    showMin = clockMin;
+    showSec = clockSec;
+    showCenti = clockCenti;
+    showDeci = showCenti / 10;
+
+  } // snapshotTime()
+
+
   void incCenti() {
 
     clockCenti++;
@@ -145,11 +170,6 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
     incSec();
     
   } // incCenti()
-
-
-  void calcDeci() {
-    clockDeci = clockCenti / 10;
-  } // calcDeci()
 
 
   void incSec() {
@@ -210,9 +230,9 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
     const uint16_t pixelToByte = (pixelSlots / 256) + 1;
 
     uint16_t actualSlot =
-      (clockHour * 60 * 60) +
-      (clockMin * 60) +
-      (clockSec)
+      (showHour * 60 * 60) +
+      (showMin * 60) +
+      (showSec)
     ;
 
     hourFadeOutPos = actualSlot / pixelSlots;
@@ -234,9 +254,9 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
     const uint16_t pixelToByte = (pixelSlots / 256) + 1;
 
     uint16_t actualSlot =
-      (clockMin * 60 * 10) +
-      (clockSec * 10) +
-      (clockDeci)
+      (showMin * 60 * 10) +
+      (showSec * 10) +
+      (showDeci)
     ;
 
     minFadeOutPos = actualSlot / pixelSlots;
@@ -258,30 +278,20 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
     const uint16_t pixelToByte = (pixelSlots / 256) + 1;
 
     uint16_t actualSlot =
-      (clockSec * 100) +
-      (clockCenti)
+      (showSec * 100) +
+      (showCenti)
     ;
 
-    minFadeOutPos = actualSlot / pixelSlots;
-    minFadeInPos = minFadeOutPos + 1;
-    if (minFadeInPos >= LARGE_PIX) minFadeInPos = 0;
+    secFadeOutPos = actualSlot / pixelSlots;
+    secFadeInPos = secFadeOutPos + 1;
+    if (secFadeInPos >= LARGE_PIX) secFadeInPos = 0;
 
-    minFadeInValue = (actualSlot % pixelSlots) / pixelToByte;
-    minFadeOutValue = 255 - minFadeInValue;
-    if (minFadeInValue < DARK_LARGE) minFadeInValue = DARK_LARGE;
-    if (minFadeOutValue < DARK_LARGE) minFadeOutValue = DARK_LARGE;
+    secFadeInValue = (actualSlot % pixelSlots) / pixelToByte;
+    secFadeOutValue = 255 - secFadeInValue;
+    if (secFadeInValue < DARK_LARGE) secFadeInValue = DARK_LARGE;
+    if (secFadeOutValue < DARK_LARGE) secFadeOutValue = DARK_LARGE;
 
   } // calcSec()
-
-
-  void redrawClock() {
-
-    redrawSmall();
-    redrawLarge();
-
-    strip.show();
-
-  } // redrawClock()
 
 
   void redrawSmall() {

@@ -398,13 +398,13 @@ for (int n = 0; n < 3; n++)
 
     if (background) {
 
-      if (sec <= min) {
-        red = 255;
+      if (sec <= DARK_LARGE) {
+        red = sec;
+        green = DARK_LARGE * 2 - sec;
       } else {
-        red = 127;
-        green = 127;
+        red = sec;
+        green = ( sec < DARK_LARGE * 2 ? DARK_LARGE * 2 - sec : 0 );
       }
-
 
     } else {
       green = 0;

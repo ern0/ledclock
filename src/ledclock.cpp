@@ -333,32 +333,32 @@ for (int n = 0; n < 3; n++)
       if (n == secFadeOutPos) {
 
         if (n == minFadeOutPos) {
-          mixPix(n,minFadeOutValue,secFadeOutValue);
+          mixPix(n,false,minFadeOutValue,secFadeOutValue);
           continue;
         }
 
         if (n == minFadeInPos) {
-          mixPix(n,minFadeInValue,secFadeOutValue);
+          mixPix(n,false,minFadeInValue,secFadeOutValue);
           continue;
         }
 
-        mixPix(n,DARK_LARGE,secFadeOutValue);
+        mixPix(n,true,DARK_LARGE,secFadeOutValue);
         continue;
       }
 
       if (n == secFadeInPos) {
 
         if (n == minFadeOutPos) {
-          mixPix(n,minFadeOutValue,secFadeInValue);
+          mixPix(n,false,minFadeOutValue,secFadeInValue);
           continue;
         }
 
         if (n == minFadeInPos) {
-          mixPix(n,minFadeInValue,secFadeInValue);
+          mixPix(n,false,minFadeInValue,secFadeInValue);
           continue;
         }
 
-        mixPix(n,DARK_LARGE,secFadeInValue);
+        mixPix(n,true,DARK_LARGE,secFadeInValue);
         continue;
       }
       
@@ -391,15 +391,14 @@ for (int n = 0; n < 3; n++)
   } // redrawLarge()
 
 
-  void mixPix(uint8_t pos,uint8_t min,uint8_t sec) {
+  void mixPix(uint8_t pos,bool background,uint8_t min,uint8_t sec) {
 
     uint8_t red;
     uint8_t green;
 
-    if (min == DARK_LARGE) {
+    if (background) {
 
-
-      if (sec == min) {
+      if (sec <= min) {
         red = 255;
       } else {
         red = 127;

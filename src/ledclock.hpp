@@ -42,7 +42,7 @@ inline void calcMin();
 inline void calcSec();
 inline void redrawSmall();
 inline void redrawLarge();
-inline void mixPix(uint8_t pos,uint8_t minValue,uint8_t secValue);
+inline void mixPix(uint8_t pos,bool bg,uint8_t min,uint8_t sec);
 
 
 # ifdef SDL_DISPLAY

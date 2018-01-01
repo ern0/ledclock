@@ -21,10 +21,11 @@ static char small[SMALL_PIX] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
 # else 
 static char large[LARGE_PIX] = { 23,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22 };
 static char small[SMALL_PIX] = { 24,25,26,27,28,29,30,31,32,33,34,35 };
-# define DARK_SMALL 0x11
+# define DARK_SMALL 0x0f
 # define DARK_LARGE 0x07
 # endif
 
+# define BRIGHTNESS 0x40
 
 
 void setupTimerInterrupt();

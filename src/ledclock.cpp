@@ -63,7 +63,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
     pinMode(REAR_RIGHT,INPUT);
     
     strip.begin();
-    strip.setBrightness(47);
+    strip.setBrightness(BRIGHTNESS);
     strip.show();
 
     Serial.begin(38400);

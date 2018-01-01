@@ -11,7 +11,7 @@ static uint8_t irqdiv = 0;
 //# else
 static int8_t clockHour = 15 % 12;
 static int8_t clockMin = 45;
-static int8_t clockSec = 15;   /// 45
+static int8_t clockSec = 40;
 //# endif
 static int8_t clockCenti = 0;
 
@@ -117,7 +117,6 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
     if (irqdiv < 10) return;
     irqdiv = 0;
     
-for (int n = 0; n < 3; n++)
     tick();  // 100 Hz
     
   } // ISR()
@@ -286,8 +285,6 @@ for (int n = 0; n < 3; n++)
 
     secFadeInValue = (actualSlot % pixelSlots) / pixelToByte;
     secFadeOutValue = 255 - secFadeInValue;
-    if (secFadeInValue < DARK_LARGE) secFadeInValue = DARK_LARGE;
-    if (secFadeOutValue < DARK_LARGE) secFadeOutValue = DARK_LARGE;
 
   } // calcSec()
 
@@ -393,23 +390,14 @@ for (int n = 0; n < 3; n++)
 
   void mixPix(uint8_t pos,bool background,uint8_t min,uint8_t sec) {
 
-    uint8_t red;
-    uint8_t green;
+    uint8_t red = sec;
+    uint8_t green = ( background ? DARK_LARGE : min );
 
-    if (background) {
+    if (green > red / 2) green -= red / 2;
+    if (red < green) red = green;
 
-      if (sec <= DARK_LARGE) {
-        red = sec;
-        green = DARK_LARGE * 2 - sec;
-      } else {
-        red = sec;
-        green = ( sec < DARK_LARGE * 2 ? DARK_LARGE * 2 - sec : 0 );
-      }
-
-    } else {
-      green = 0;
-      red = 0;
-    }
+    if (red < DARK_LARGE) red = DARK_LARGE;
+    if (green < DARK_LARGE) green = DARK_LARGE;
 
     strip.setPixelColor(
       large[pos]

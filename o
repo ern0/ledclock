@@ -2,5 +2,6 @@
 clear
 
 pio lib install 28
+#rm -rf .pioenvs/arduino/src/ledclock.o
+#pio run -e arduino ; exit
 pio run -t upload -e arduino
-pio run -e arduino

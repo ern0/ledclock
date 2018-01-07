@@ -393,7 +393,11 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(LARGE_PIX + SMALL_PIX,PIN,NEO_GRB + 
     uint8_t red = sec;
     uint8_t green = ( background ? DARK_LARGE : min );
 
-    if (green > red / 2) green -= red / 2;
+    if (green > red/2) {
+      green -= red/2;
+    } else {
+      green = 0;
+    }
     if (red < green) red = green;
 
     if (red < DARK_LARGE) red = DARK_LARGE;

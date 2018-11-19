@@ -428,7 +428,7 @@ class Adafruit_NeoPixel {
 	private:
 		bool sdlInitialized;
 		SDL_Window* window;
-		SDL_Surface* screenSurface;
+		SDL_Renderer* renderer;
 		EmuPixel* emuPixels;
 
 		const char* gridAnchor;
